@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>跨"关"越海：海南封关与青年的N种可能</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2980b9', 
+                        secondary: '#3498db', 
+                        gold: '#D4AF37', 
+                        goldLight: '#F0C808', 
+                        goldDark: '#B8860B', 
+                        neutral: '#E9E9E9', 
+                        footerGray: '#333333',
+                        neutralUltraLight: '#F0F0F0', 
+                        neutralSuperLight: '#F5F5F5' 
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'elegant': '0 4px 20px rgba(0, 0, 0, 0.08)',
+                        'elegant-hover': '0 8px 30px rgba(0, 0, 0, 0.12)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            }
+            .hover-lift {
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }
+            .hover-lift:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            }
+            .video-hover-scale {
+                transition: transform 0.3s ease;
+            }
+            .video-hover-scale:hover {
+                transform: scale(1.02);
+            }
+            @keyframes scrollNews {
+                0% { transform: translateY(0); }
+                100% { transform: translateY(-100%); }
+            }
+            .animate-scroll-news {
+                animation: scrollNews 30s linear infinite;
+            }
+            /* 点击测试按钮悬停样式 */
+            .test-btn-hover {
+                transition: all 0.3s ease;
+            }
+            .test-btn-hover:hover {
+                transform: scale(1.08);
+                background-color: #3498db !important;
+                box-shadow: 0 4px 12px rgba(41, 128, 185, 0.3);
+            }
+            /* 海韵新知图片悬停效果 */
+            .haiyun-img-hover {
+                transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            }
+            .haiyun-card:hover .haiyun-img-hover {
+                transform: translateY(-8px) scale(1.03);
+                box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
+            }
+            /* 海韵新知按钮同步悬停 */
+            .haiyun-btn {
+                transition: all 0.4s ease;
+            }
+            .haiyun-card:hover .haiyun-btn {
+                background-color: #2980b9;
+                color: white;
+                transform: translateY(-3px);
+                box-shadow: 0 6px 12px rgba(41,128,185,0.2);
+            }
+        }
+    </style>
+    <style>
+        .video-player-modal {
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s ease;
+            z-index: -1;
+        }
+        .video-player-modal.active {
+            opacity: 1;
+            visibility: visible;
+            z-index: 100;
+        }
+        .video-progress-bar {
+            height: 4px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .video-progress {
+            height: 100%;
+            background-color: #D4AF37;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+        .format-time {
+            font-size: 0.875rem;
+        }
+        .carousel-item-link {
+            display: block;
+            width: 100%;
+            height: 100%;
+            text-decoration: none;
+            color: inherit;
+        }
+        .carousel-text-content {
+            transition: color 0.3s ease;
+        }
+        .carousel-text-content:hover {
+            color: #D4AF37;
+        }
+        .video-title-static {
+            color: #2980b9;
+            cursor: default;
+        }
+        .video-error-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            text-align: center;
+            background: rgba(0,0,0,0.7);
+            padding: 20px;
+            border-radius: 8px;
+            display: none;
+        }
+        /* 视频播放按钮默认隐藏，悬停显示 */
+        .play-btn-wrapper {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        /* 视频时长默认隐藏，悬停显示 */
+        .video-duration {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .video-cover:hover .play-btn-wrapper,
+        .video-cover:hover .video-duration {
+            opacity: 1;
+        }
+
+        /* 右上角静态白色播放按钮 - 仅首页视频 */
+        .static-play-icon {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 36px;
+            height: 36px;
+            background-color: rgba(255,255,255,0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            z-index: 2;
+        }
+        .video-cover:hover .static-play-icon {
+            opacity: 0;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <header class="bg-white shadow-md sticky top-0 z-50 transition-all duration-300" id="navbar">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center py-3">
+                <div class="flex items-center">
+                    <a href="#" class="flex items-center">
+                        <div class="w-10 h-10 rounded-full bg-gold flex items-center justify-center mr-2 overflow-hidden">
+                            <img src="images/Logo.png" alt="新闻网Logo" class="w-full h-full object-contain">
+                        </div>
+                        <span class="text-xl font-bold text-black">跨“关”越海</span>
+                    </a>
+                </div>
+                <nav class="hidden md:flex space-x-6">
+                    <a href="index.html" class="text-primary font-medium hover:text-secondary transition-colors">首页</a>
+                    <a href="subpage-1.html" class="text-gray-700 font-medium hover:text-primary transition-colors">封关解读</a>
+                    <a href="subpage-2.html" class="text-gray-700 font-medium hover:text-primary transition-colors">封关纪事</a>
+                    <a href="subpage-3.html" class="text-gray-700 font-medium hover:text-primary transition-colors">机遇图谱</a>
+                    <a href="subpage-4.html" class="text-gray-700 font-medium hover:text-primary transition-colors">青年回音</a>
+                </nav>
+                <div class="flex items-center space-x-4">
+                    <button class="text-gray-700 hover:text-primary transition-colors">
+                        <i class="fa fa-search text-lg"></i>
+                    </button>
+                    <button class="md:hidden text-gray-700 hover:text-primary transition-colors" id="menuBtn">
+                        <i class="fa fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="md:hidden bg-white shadow-lg absolute w-full left-0 top-full transform -translate-y-full opacity-0 transition-all duration-300 pointer-events-none" id="mobileMenu">
+            <div class="container mx-auto px-4 py-3 flex flex-col space-y-3">
+                <a href="index.html" class="text-gray-700 font-medium py-2 border-b border-gray-100">首页</a>
+                <a href="subpage-1.html" class="text-gray-700 font-medium py-2 border-b border-gray-100">封关解读</a>
+                <a href="subpage-2.html" class="text-gray-700 font-medium py-2 border-b border-gray-100">封关纪事</a>
+                <a href="subpage-3.html" class="text-gray-700 font-medium py-2 border-b border-gray-100">机遇图谱</a>
+                <a href="subpage-4.html" class="text-gray-700 font-medium py-2">青年回音</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="container mx-auto px-4 py-6">
+            <div class="relative overflow-hidden rounded-xl shadow-lg" id="newsCarousel">
+                <div class="flex transition-transform duration-500 ease-in-out" id="carouselSlides">
+                    <div class="min-w-full relative">
+                        <img src="images/新1.png" alt="焦点新闻图片" class="w-full h-[720px] object-cover" style="max-width: 1920px; margin: 0 auto;">
+                    </div>
+                    <div class="min-w-full relative">
+                        <img src="images/页22.png" alt="焦点新闻图片" class="w-full h-[720px] object-cover" style="max-width: 1920px; margin: 0 auto;">
+                    </div>
+                    <div class="min-w-full relative">
+                        <img src="images/页2.png" alt="焦点新闻图片" class="w-full h-[720px] object-cover" style="max-width: 1920px; margin: 0 auto;">
+                    </div>
+                    <!-- 新增第4张轮播图 -->
+                    <div class="min-w-full relative">
+                        <img src="images/页3.jpeg" alt="焦点新闻图片" class="w-full h-[720px] object-cover" style="max-width: 1920px; margin: 0 auto;">
+                    </div>
+                    <!-- 新增第5张轮播图 -->
+                    <div class="min-w-full relative">
+                        <img src="images/页4.png" alt="焦点新闻图片" class="w-full h-[720px] object-cover" style="max-width: 1920px; margin: 0 auto;">
+                    </div>
+                </div>
+                <button class="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-primary/30 hover:bg-primary/50 text-white flex items-center justify-center transition-colors z-10" id="prevSlide">
+                    <i class="fa fa-chevron-left"></i>
+                </button>
+                <button class="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-primary/30 hover:bg-primary/50 text-white flex items-center justify-center transition-colors z-10" id="nextSlide">
+                    <i class="fa fa-chevron-right"></i>
+                </button>
+                <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2 z-10">
+                    <button class="w-3 h-3 rounded-full bg-gold/50 hover:bg-gold transition-colors carousel-indicator active" data-index="0"></button>
+                    <button class="w-3 h-3 rounded-full bg-gold/50 hover:bg-gold transition-colors carousel-indicator" data-index="1"></button>
+                    <button class="w-3 h-3 rounded-full bg-gold/50 hover:bg-gold transition-colors carousel-indicator" data-index="2"></button>
+                    <!-- 新增第4个指示器 -->
+                    <button class="w-3 h-3 rounded-full bg-gold/50 hover:bg-gold transition-colors carousel-indicator" data-index="3"></button>
+                    <!-- 新增第5个指示器 -->
+                    <button class="w-3 h-3 rounded-full bg-gold/50 hover:bg-gold transition-colors carousel-indicator" data-index="4"></button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 左侧简介+右侧最新动态 并排布局 -->
+        <section class="py-12 bg-neutralUltraLight">
+            <div class="container mx-auto px-6 md:px-12">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- 左侧：简介卡片 + 视频卡片 -->
+                    <div class="flex flex-col gap-8">
+                        <!-- 简介卡片 -->
+                        <div class="bg-gray-50 rounded-xl p-8 md:p-10 shadow-elegant">
+                            <p class="text-gray-800 text-lg md:text-xl leading-relaxed">
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;从长江之滨到南海之畔，距离约1500公里。当海南全岛封关运作火热推进，湖北青年能否抓住这股东风？我们为你梳理封关背后的N种机遇，也倾听同龄人的真实回音。
+                            </p>
+                        </div>
+                        
+                        <!-- 单个视频卡片（修复版，添加标题和描述） -->
+                        <div class="bg-gray-50 rounded-xl shadow-elegant hover:shadow-elegant-hover overflow-hidden hover-lift h-[300px] flex flex-col">
+                            <div class="relative flex-1 overflow-hidden video-cover cursor-pointer" data-video-url="videos/首页.mp4">
+                                <!-- 静态白色播放按钮（右上角） -->
+                                <div class="static-play-icon">
+                                    <i class="fa fa-play text-primary text-sm"></i>
+                                </div>
+                                
+                                <img src="images/首页.png" alt="主题视频" class="w-full h-full object-cover video-hover-scale">
+                                <div class="absolute inset-0 bg-black/30 flex items-center justify-center play-btn-wrapper">
+                                    <button class="w-14 h-14 rounded-full bg-gold/90 play-btn flex items-center justify-center">
+                                        <i class="fa fa-play text-secondary text-xl ml-1"></i>
+                                    </button>
+                                </div>
+                                <div class="absolute bottom-3 right-3 bg-black/70 text-white text-sm px-2 py-1 rounded video-duration">
+                                    05:23
+                                </div>
+                            </div>
+                            <!-- 必须添加：视频标题和描述，供JS读取 -->
+                            
+                        </div>
+                    </div>
+
+                    <!-- 右侧：最新动态 -->
+                    <div class="bg-gray-50 rounded-xl p-8 md:p-10 shadow-elegant">
+                        <!-- 标题居中 向上移动：修改 mb-6 → mb-2 -->
+                        <div class="mb-2 text-center">
+                            <h2 class="text-2xl font-bold text-primary mb-2">最新动态</h2>
+                            <div class="w-16 h-1 bg-gold mx-auto"></div>
+                        </div>
+                        
+                        <ul class="news-list h-[300px] overflow-hidden relative" id="newsList">
+                            <!-- 减小上下遮挡渐变高度 -->
+                            <div class="absolute top-0 left-0 w-full h-6 bg-gradient-to-b from-gray-50 to-transparent z-10 pointer-events-none"></div>
+                            <div class="absolute bottom-0 left-0 w-full h-6 bg-gradient-to-t from-gray-50 to-transparent z-10 pointer-events-none"></div>
+                            <div class="animate-scroll-news" id="newsScroll">
+                                <li class="py-4 border-b border-gray-200 flex items-center">
+                                    <span class="inline-block bg-gold/10 text-gold text-xs px-2 py-1 rounded mr-3 flex-shrink-0">2026-06-06 08:47</span>
+                                    <a href="http://www.hainan.news.cn/20260606/315bb2a05aea4af1a62d748a8ac66c08/c.html" class="text-gray-800 hover:text-primary transition-colors whitespace-nowrap overflow-hidden text-ellipsis block">海南推出“掌上通关”服务</a>
+                                </li>
+                                <li class="py-4 border-b border-gray-200 flex items-center">
+                                    <span class="inline-block bg-gold/10 text-gold text-xs px-2 py-1 rounded mr-3 flex-shrink-0">2026-05-30 14:51</span>
+                                    <a href="https://finance.sina.com.cn/jjxw/2026-05-30/doc-inhzsham8716669.shtml" class="text-gray-800 hover:text-primary transition-colors whitespace-nowrap overflow-hidden text-ellipsis block">封关后首架零关税A321neo正式入列海南航空，助力自贸港“飞得更高”</a>
+                                </li>
+                                <li class="py-4 border-b border-gray-200 flex items-center">
+                                    <span class="inline-block bg-gold/10 text-gold text-xs px-2 py-1 rounded mr-3 flex-shrink-0">2026-04-17 22:01</span>
+                                    <a href="https://www.news.cn/fortune/20260417/f1c68f0aba8543db9c0368feca5f988a/c.html" class="text-gray-800 hover:text-primary transition-colors whitespace-nowrap overflow-hidden text-ellipsis block">在消博会聆听海南自贸港封关后的活力与机遇</a>
+                                </li>
+                                <li class="py-4 border-b border-gray-200 flex items-center">
+                                    <span class="inline-block bg-gold/10 text-gold text-xs px-2 py-1 rounded mr-3 flex-shrink-0">2026-03-27 10:39</span>
+                                    <a href="https://mp.weixin.qq.com/s/enqTM6VVgiiTFYQl-t1ZHQ" class="text-gray-800 hover:text-primary transition-colors whitespace-nowrap overflow-hidden text-ellipsis block">封关百日成绩单发布 海南凝聚“新期待”</a>
+                                </li>
+                                <li class="py-4 border-b border-gray-200 flex items-center">
+                                    <span class="inline-block bg-gold/10 text-gold text-xs px-2 py-1 rounded mr-3 flex-shrink-0">2026-01-17 21:29</span>
+                                    <a href="http://shantou.customs.gov.cn/customs/xwfb34/mtjj35/6902868/index.html" class="text-gray-800 hover:text-primary transition-colors whitespace-nowrap overflow-hidden text-ellipsis block">焦点访谈｜海南自贸港全岛封关“满月” 新篇章这样书写</a>
+                                </li>
+                                <li class="py-4 border-b border-gray-200 flex items-center">
+                                    <span class="inline-block bg-gold/10 text-gold text-xs px-2 py-1 rounded mr-3 flex-shrink-0">2025-12-31 19:39</span>
+                                    <a href="https://mr.baidu.com/r/1PbuMAQoSBO?f=cp&rs=947091883&ruk=AT5V9porsIoIdzJSM0yu0w&u=5efdfb6550143ec0&urlext=%7B%22cuid%22%3A%22g8S9i_u328g18vaElivR8li12u_PuSaagu2biluESiKW0qqSB%22%7D" class="text-gray-800 hover:text-primary transition-colors whitespace-nowrap overflow-hidden text-ellipsis block">海南封关运作近半月平稳有序 岛内居民将享免税购物红利</a>
+                                </li>
+
+                                <li class="py-4 border-b border-gray-200 flex items-center">
+                                    <span class="inline-block bg-gold/10 text-gold text-xs px-2 py-1 rounded mr-3 flex-shrink-0">2025-12-24 10:01</span>
+                                    <a href="https://www.hainan.gov.cn/hainan/5309/202512/6c40fd78e5d84e99a839776e23c52c66.shtml" class="text-gray-800 hover:text-primary transition-colors whitespace-nowrap overflow-hidden text-ellipsis block">海南封关运作信息化保障团队7×24小时轮班重点保障</a>
+                                </li>
+                                <li class="py-4 border-b border-gray-200 flex items-center">
+                                    <span class="inline-block bg-gold/10 text-gold text-xs px-2 py-1 rounded mr-3 flex-shrink-0">2025-12-18 09:57</span>
+                                    <a href="https://mq.mbd.baidu.com/r/1OplQ42JqRa?f=cp&rs=239570207&ruk=AT5V9porsIoIdzJSM0yu0w&u=e08a5781eef737fc&urlext=%7B%22cuid%22%3A%22g8S9i_u328g18vaElivR8li12u_PuSaagu2biluESiKW0qqSB%22%7D" class="text-gray-800 hover:text-primary transition-colors whitespace-nowrap overflow-hidden text-ellipsis block">新华鲜报丨历史性时刻！海南自贸港正式启动全岛封关</a>
+                                </li>
+                            </div>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 海韵新知 新版块 -->
+        <section class="py-8 bg-neutralUltraLight">
+            <div class="container mx-auto px-6 md:px-12">
+                <!-- 标题居中 -->
+                <div class="mb-8 text-center">
+                    <h2 class="text-[clamp(1.5rem,2.5vw,2rem)] font-bold text-primary mb-4">海韵新知</h2>
+                    <div class="w-20 h-1 bg-gold mx-auto"></div>
+                </div>
+
+                <!-- 4张9:16图片布局 + 底部查看更多按钮 -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <!-- 卡片1 -->
+                    <div class="flex flex-col gap-3 rounded-xl overflow-hidden haiyun-card">
+                        <img src="images/测试3.png" alt="海韵新知图片1" class="w-full aspect-[9/16] object-cover rounded-xl shadow-elegant haiyun-img-hover">
+                      <a href="https://e.eqxiu.com/s/nvoYKQZG?eip=true" class="haiyun-btn w-full py-2 border border-primary text-primary text-center font-medium rounded-full">
+                            点击测试
+                      </a>
+                    </div>
+
+                    <!-- 卡片2 -->
+                    <div class="flex flex-col gap-3 rounded-xl overflow-hidden haiyun-card">
+                        <img src="images/新2.jpg" alt="海韵新知图片2" class="w-full aspect-[9/16] object-cover rounded-xl shadow-elegant haiyun-img-hover">
+                        <a href="https://v.wjx.cn/vm/QaROBA1.aspx" class="haiyun-btn w-full py-2 border border-primary text-primary text-center font-medium rounded-full">
+                            点击填写
+                        </a>
+                    </div>
+                    <!-- 卡片3 -->
+                    <div class="flex flex-col gap-3 rounded-xl overflow-hidden haiyun-card">
+                        <img src="images/新海3.jpg" alt="海韵新知图片3" class="w-full aspect-[9/16] object-cover rounded-xl shadow-elegant haiyun-img-hover">
+                        <a href="subpage-1.html" class="haiyun-btn w-full py-2 border border-primary text-primary text-center font-medium rounded-full">
+                            查看更多
+                        </a>
+                    </div>
+                    <!-- 卡片4 -->
+                    <div class="flex flex-col gap-3 rounded-xl overflow-hidden haiyun-card">
+                        <img src="images/图4.jpg" alt="海韵新知图片4" class="w-full aspect-[9/16] object-cover rounded-xl shadow-elegant haiyun-img-hover">
+                      <a href="subpage-2.html" class="haiyun-btn w-full py-2 border border-primary text-primary text-center font-medium rounded-full">
+                            查看更多
+                      </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 椰风楚韵 板块 -->
+        <section class="py-8 bg-neutralUltraLight">
+            <div class="container mx-auto px-6 md:px-12">
+                <div class="text-center mb-12">
+                    <h2 class="text-[clamp(1.5rem,2.5vw,2rem)] font-bold text-primary mb-4">椰风楚韵</h2>
+                    <div class="w-20 h-1 bg-gold mx-auto mb-6"></div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="bg-white rounded-xl shadow-elegant p-5 hover-lift">
+                        <img src="images/黄冈.png" alt="湖北基建援琼" class="w-full h-40 object-cover rounded-lg mb-4">
+                        <span class="inline-block text-xs bg-primary/10 text-primary px-2 py-1 rounded">湖北黄冈</span>
+                        <h4 class="font-semibold text-lg mt-3 line-clamp-2 hover:text-primary transition-colors">
+                            <a href="https://lwt.hainan.gov.cn/ywdt/zwdt/202511/t20251108_3963480.html">千年东坡焕新生 海南诗舞乐《不老的东坡》跨省巡演受热捧</a>
+                        </h4>
+                        <p class="text-sm text-gray-600 mt-2 line-clamp-2">黄冈东坡赤壁联动海南东坡遗迹，两地共演剧目，传承千年东坡诗酒人文文脉。</p>
+                        <span class="text-xs text-gray-500 mt-3">2025-11-08</span>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-elegant p-5 hover-lift">
+                        <img src="images/襄阳.png" alt="人才支援" class="w-full h-40 object-cover rounded-lg mb-4">
+                        <span class="inline-block text-xs bg-primary/10 text-primary px-2 py-1 rounded">湖北襄阳</span>
+                        <h4 class="font-semibold text-lg mt-3 line-clamp-2 hover:text-primary transition-colors">
+                            <a href="http://m.cnhubei.com/content/2025-09/28/content_19539733.html">椰风染楚韵 碧海映古城——三亚襄阳旅游双城联动活动圆满落幕</a>
+                        </h4>
+                        <p class="text-sm text-gray-600 mt-2 line-clamp-2">三亚碧海椰林邂逅襄阳古城汉水，两地携手打造海岛与古城交融的特色文旅线路。</p>
+                        <span class="text-xs text-gray-500 mt-3">2025-09-29</span>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-elegant p-5 hover-lift">
+                        <img src="images/荆州.png" alt="商贸互通" class="w-full h-40 object-cover rounded-lg mb-4">
+                        <span class="inline-block text-xs bg-primary/10 text-primary px-2 py-1 rounded">湖北荆州</span>
+                        <h4 class="font-semibold text-lg mt-3 line-clamp-2 hover:text-primary transition-colors">
+                            <a href="https://hain.chinadaily.com.cn/a/202403/17/WS65f6aadca3109f7860dd5c00.html">湖北荆州骑行团最美旅游公路骑行挑战活动在海口启动</a>
+                        </h4>
+                        <p class="text-sm text-gray-600 mt-2 line-clamp-2">荆州骑行爱好者畅游海南环岛公路，荆楚江汉文脉与海南椰林海岸风光完美相融。</p>
+                        <span class="text-xs text-gray-500 mt-3">2024-03-17</span>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-elegant p-5 hover-lift">
+                        <img src="images/恩施.png" alt="湖北农产品出海" class="w-full h-40 object-cover rounded-lg mb-4">
+                        <span class="inline-block text-xs bg-primary/10 text-primary px-2 py-1 rounded">湖北恩施</span>
+                        <h4 class="font-semibold text-lg mt-3 line-clamp-2 hover:text-primary transition-colors">
+                            <a href="https://www.estv.com.cn/sh/2771359.htm">【四十年四十城】恩施牵手海口，一起云游诗画鹤峰和魅力滨海</a>
+                        </h4>
+                        <p class="text-sm text-gray-600 mt-2 line-clamp-2">恩施秀美峡谷山水搭配海口南洋风情骑楼与滨海夜景，鄂琼两地风光相映成趣。</p>
+                        <span class="text-xs text-gray-500 mt-3">2023-12-24</span>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-12">
+                    <a href="subpage-4.html" class="inline-block border-2 border-secondary text-secondary hover:bg-primary hover:text-white font-semibold px-8 py-3 rounded-md transition-all duration-300 shadow-elegant hover:shadow-elegant-hover">
+                        查看更多楚音 <i class="fa fa-angle-right ml-2"></i>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- 海南封彩 视频板块：仅加大底部间距 -->
+        <section id="wonderful-video" class="py-8 pb-16 bg-neutralUltraLight">
+            <div class="container mx-auto px-6 md:px-12">
+                <div class="text-center mb-16">
+                    <h2 class="text-[clamp(1.5rem,2.5vw,2rem)] font-bold text-primary mb-4">海南封彩</h2>
+                    <div class="w-20 h-1 bg-gold mx-auto mb-6"></div>
+                    
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="video-card bg-gray-50 rounded-xl shadow-elegant hover:shadow-elegant-hover overflow-hidden hover-lift">
+                        <div class="relative h-48 md:h-56 overflow-hidden video-cover cursor-pointer" data-video-url="videos/开头.mp4">
+                            <img src="images/开头.png" alt="嘉宾分享视频" class="w-full h-full object-cover video-hover-scale">
+                            <div class="absolute inset-0 bg-black/30 flex items-center justify-center play-btn-wrapper">
+                                <button class="w-14 h-14 rounded-full bg-gold/90 play-btn flex items-center justify-center">
+                                    <i class="fa fa-play text-secondary text-xl ml-1"></i>
+                                </button>
+                            </div>
+                            <div class="absolute bottom-3 right-3 bg-black/70 text-white text-sm px-2 py-1 rounded video-duration">
+                                01:39
+                            </div>
+                            <div class="video-error-message" id="videoError1">
+                                <i class="fa fa-exclamation-triangle text-2xl mb-2"></i>
+                                <p>视频加载失败</p>
+                                <p class="text-sm mt-1">请检查视频文件路径是否正确</p>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex items-center mb-3">
+                                <span class="text-xs bg-secondary/10 text-secondary px-2 py-1 rounded-full">封关启幕</span>
+                                <span class="text-xs text-gray-500 ml-3">2025-12-19</span>
+
+                            </div>
+                            <h3 class="text-xl font-semibold mb-2 video-title-static">
+                                封关第一天
+                            </h3>
+                            <p class="text-gray-600 mb-4 line-clamp-2">
+                                2025年12月海南自贸港全岛封关，首批零关税货物通关，马来西亚榴莲等进口商品惠民，开放发展迈入新阶段
+                            </p>
+                            <div class="flex justify-between items-center">
+
+                                <span class="text-sm text-gray-600 flex items-center">
+                                    <i class="fa fa-user mr-1"></i> 海南Time
+                                </span>
+                                <span class="text-sm text-gray-600 flex items-center">
+                                    <i class="fa fa-comment mr-1"></i> 53 条评论
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="video-card bg-gray-50 rounded-xl shadow-elegant hover:shadow-elegant-hover overflow-hidden hover-lift">
+                        <div class="relative h-48 md:h-56 overflow-hidden video-cover cursor-pointer" data-video-url="videos/中间.mp4">
+                            <img src="images/中间.png" alt="师生对话视频" class="w-full h-full object-cover video-hover-scale">
+                            <div class="absolute inset-0 bg-black/30 flex items-center justify-center play-btn-wrapper">
+                                <button class="w-14 h-14 rounded-full bg-gold/90 play-btn flex items-center justify-center">
+                                    <i class="fa fa-play text-secondary text-xl ml-1"></i>
+                                </button>
+                            </div>
+                            <div class="absolute bottom-3 right-3 bg-black/70 text-white text-sm px-2 py-1 rounded video-duration">
+                                01:14
+                            </div>
+                            <div class="video-error-message" id="videoError2">
+                                <i class="fa fa-exclamation-triangle text-2xl mb-2"></i>
+                                <p>视频加载失败</p>
+                                <p class="text-sm mt-1">请检查视频文件路径是否正确</p>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex items-center mb-3">
+                                <span class="text-xs bg-secondary/10 text-secondary px-2 py-1 rounded-full">封关赋能</span>
+                                <span class="text-xs text-gray-500 ml-3">2025-12-20</span>
+                            </div>
+                            <h3 class="text-xl font-semibold mb-2 video-title-static">
+                                海南新画卷
+                            </h3>
+                            <p class="text-gray-600 mb-4 line-clamp-2">
+                                海南自贸港建设助推四大产业补链延链，封关运作后迎来跨越发展，谱写开放新篇章
+                            </p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600 flex items-center">
+                                    <i class="fa fa-user mr-1"></i> 经济日报视点
+                                </span>
+                                <span class="text-sm text-gray-600 flex items-center">
+                                    <i class="fa fa-comment mr-1"></i> 3 条评论
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="video-card bg-gray-50 rounded-xl shadow-elegant hover:shadow-elegant-hover overflow-hidden hover-lift">
+                        <div class="relative h-48 md:h-56 overflow-hidden video-cover cursor-pointer" data-video-url="videos/最后.mp4">
+                            <img src="images/最后.png" alt="圆桌论坛视频" class="w-full h-full object-cover video-hover-scale">
+                            <div class="absolute inset-0 bg-black/30 flex items-center justify-center play-btn-wrapper">
+                                <button class="w-14 h-14 rounded-full bg-gold/90 play-btn flex items-center justify-center">
+                                    <i class="fa fa-play text-secondary text-xl ml-1"></i>
+                                </button>
+                            </div>
+                            <div class="absolute bottom-3 right-3 bg-black/70 text-white text-sm px-2 py-1 rounded video-duration">
+                                01:22
+                            </div>
+                            <div class="video-error-message" id="videoError3">
+                                <i class="fa fa-exclamation-triangle text-2xl mb-2"></i>
+                                <p>视频加载失败</p>
+                                <p class="text-sm mt-1">请检查视频文件路径是否正确</p>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex items-center mb-3">
+                                <span class="text-xs bg-secondary/10 text-secondary px-2 py-1 rounded-full">自贸繁景</span>
+                                <span class="text-xs text-gray-500 ml-3">2026-03-26</span>
+                            </div>
+                            <h3 class="text-xl font-semibold mb-2 video-title-static">
+                                海南正燃
+                            </h3>
+                            <p class="text-gray-600 mb-4 line-clamp-2">
+                                海南自贸港封关百日，一线放开二线管住，外资企业增长，发展势头正燃
+                            </p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600 flex items-center">
+                                    <i class="fa fa-user mr-1"></i> 海南Time
+                                </span>
+                                <span class="text-sm text-gray-600 flex items-center">
+                                    <i class="fa fa-comment mr-1"></i> 2 条评论
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center mt-12">
+                    <a href="subpage-3.html" class="inline-block border-2 border-secondary text-secondary hover:bg-primary hover:text-white font-semibold px-8 py-3 rounded-md transition-all duration-300 shadow-elegant hover:shadow-elegant-hover">
+                        查看更多视频 <i class="fa fa-angle-right ml-2"></i>
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div class="video-player-modal fixed inset-0 bg-black/90 flex items-center justify-center p-4">
+        <div class="relative w-full max-w-5xl max-h-[90vh]">
+            <button id="closePlayerBtn" class="absolute -top-12 right-0 text-white text-2xl hover:text-gold transition-colors duration-300">
+                <i class="fa fa-times"></i>
+            </button>
+            <h3 id="playerVideoTitle" class="text-white text-xl font-semibold mb-4 text-center">视频标题</h3>
+            <div class="bg-black rounded-lg overflow-hidden">
+                <video id="mainVideoPlayer" class="w-full h-auto max-h-[70vh]" controls>
+                    <source src="" type="video/mp4">
+                    您的浏览器不支持HTML5视频播放，请更新浏览器版本
+                </video>
+                <div class="video-error-message" style="position: static; transform: none; display: none;" id="playerError">
+                    <i class="fa fa-exclamation-triangle text-2xl mb-2"></i>
+                    <p>无法加载视频文件</p>
+                    <p class="text-sm mt-1">请确保视频文件存在且路径正确</p>
+                </div>
+                <div class="bg-black/80 text-white p-4 flex flex-wrap items-center gap-4">
+                    <div class="flex items-center gap-4 flex-1 min-w-[200px]">
+                        <button class="text-white hover:text-gold transition-colors duration-300">
+                            <i class="fa fa-step-backward text-xl"></i>
+                        </button>
+                        <button id="playerPlayPause" class="text-white hover:text-gold transition-colors duration-300">
+                            <i class="fa fa-pause text-xl"></i>
+                        </button>
+                        <button class="text-white hover:text-gold transition-colors duration-300">
+                            <i class="fa fa-step-forward text-xl"></i>
+                        </button>
+                        <div class="flex-1 ml-4">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span id="currentTime" class="text-sm format-time">00:00</span>
+                                <div class="video-progress-bar flex-1">
+                                    <div class="video-progress" id="videoProgress"></div>
+                                </div>
+                                <span id="totalTime" class="text-sm format-time">00:00</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-6">
+                        <button class="text-white hover:text-gold transition-colors duration-300 flex items-center gap-1">
+                            <i class="fa fa-volume-up"></i>
+                            <span class="hidden md:inline">音量</span>
+                        </button>
+                        <button class="text-white hover:text-gold transition-colors duration-300 flex items-center gap-1">
+                            <i class="fa fa-expand"></i>
+                            <span class="hidden md:inline">全屏</span>
+                        </button>
+                        <button class="text-white hover:text-gold transition-colors duration-300 flex items-center gap-1">
+                            <i class="fa fa-share-alt"></i>
+                            <span class="hidden md:inline">分享</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-4 text-white/80 bg-white/10 p-4 rounded-lg">
+                <p id="playerVideoDesc">视频简介将在这里显示...</p>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-footerGray text-white pt-16 pb-8">
+        <div class="container mx-auto px-6 md:px-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
+                <div>
+                    <div class="flex items-center space-x-2 mb-6">
+                        <div class="w-12 h-12 bg-gold rounded-md flex items-center justify-center overflow-hidden">
+                            <img src="images/Logo.png" alt="金色Logo" class="w-full h-full object-contain">
+                        </div>
+                        <span class="text-xl font-semibold">跨“关”越海</span>
+                    </div>
+                    <p class="text-white/70 mb-6">
+                        致力于打造贴近民生，深入人心的新闻内容，推动行业创新与发展，连接全球优质资源
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="w-10 h-10 rounded-full bg-white/10 hover:bg-gold flex items-center justify-center transition-all duration-300">
+                            <i class="fa fa-weibo"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-white/10 hover:bg-gold flex items-center justify-center transition-all duration-300">
+                            <i class="fa fa-wechat"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-white/10 hover:bg-gold flex items-center justify-center transition-all duration-300">
+                            <i class="fa fa-linkedin"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-white/10 hover:bg-gold flex items-center justify-center transition-all duration-300">
+                            <i class="fa fa-twitter"></i>
+                        </a>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-6 pb-2 border-b border-white/10">快速链接</h3>
+                    <ul class="space-y-3">
+                        <li><a href="index.html" class="text-white/70 hover:text-gold transition-colors duration-300">首页</a></li>
+                        <li><a href="subpage-1.html" class="text-white/70 hover:text-gold transition-colors duration-300">封关解读</a></li>
+                        <li><a href="subpage-2.html" class="text-white/70 hover:text-gold transition-colors duration-300">封关纪事</a></li>
+                        <li><a href="subpage-3.html" class="text-white/70 hover:text-gold transition-colors duration-300">机遇图谱</a></li>
+                        <li><a href="subpage-4.html" class="text-white/70 hover:text-gold transition-colors duration-300">青年回音</a></li>
+                    </ul>
+                </div>
+                <div id="contact">
+                    <h3 class="text-lg font-semibold mb-6 pb-2 border-b border-white/10">联系我们</h3>
+                    <ul class="space-y-3">
+                        <li class="flex items-start">
+                            <i class="fa fa-map-marker text-gold mt-1 mr-3"></i>
+                            <span class="text-white/70">中国湖北</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fa fa-phone text-gold mr-3"></i>
+                            <span class="text-white/70">999-999-9999</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fa fa-envelope text-gold mr-3"></i>
+                            <span class="text-white/70">contact@kgyhnews.com</span>
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-6 pb-2 border-b border-white/10">订阅通讯</h3>
+                    <p class="text-white/70 mb-4">
+                        订阅我们的通讯，及时获取最新新闻动态与行业资讯
+                    </p>
+                    <form class="flex">
+                        <input type="email" placeholder="您的邮箱地址" class="px-4 py-2 rounded-l-md w-full focus:outline-none text-neutral">
+                        <button type="submit" class="bg-gold hover:bg-goldLight text-secondary px-4 py-2 rounded-r-md transition-colors duration-300">
+                            <i class="fa fa-paper-plane"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <div class="pt-8 border-t border-white/10 text-center text-white/50 text-sm">
+                <p>© 2026 跨“关”越海 版权所有 </p>
+            </div>
+        </div>
+    </footer>
+
+    <button id="backToTop" class="fixed bottom-6 right-6 w-12 h-12 rounded-full bg-primary text-white shadow-lg flex items-center justify-center opacity-0 invisible transition-all duration-300 hover:bg-secondary">
+        <i class="fa fa-chevron-up"></i>
+    </button>
+
+    <script>
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 100) {
+                navbar.classList.add('py-2', 'shadow-lg');
+                navbar.classList.remove('py-3', 'shadow-md');
+            } else {
+                navbar.classList.add('py-3', 'shadow-md');
+                navbar.classList.remove('py-2', 'shadow-lg');
+            }
+        });
+
+        const menuBtn = document.getElementById('menuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        let menuOpen = false;
+
+        menuBtn.addEventListener('click', () => {
+            if (menuOpen) {
+                mobileMenu.classList.add('-translate-y-full', 'opacity-0', 'pointer-events-none');
+                mobileMenu.classList.remove('translate-y-0', 'opacity-100', 'pointer-events-auto');
+                menuBtn.innerHTML = '<i class="fa fa-bars text-xl"></i>';
+            } else {
+                mobileMenu.classList.add('translate-y-0', 'opacity-100', 'pointer-events-auto');
+                mobileMenu.classList.remove('-translate-y-full', 'opacity-0', 'pointer-events-none');
+                menuBtn.innerHTML = '<i class="fa fa-times text-xl"></i>';
+            }
+            menuOpen = !menuOpen;
+        });
+
+        const carouselSlides = document.getElementById('carouselSlides');
+        const prevBtn = document.getElementById('prevSlide');
+        const nextBtn = document.getElementById('nextSlide');
+        const indicators = document.querySelectorAll('.carousel-indicator');
+        let currentSlide = 0;
+        const totalSlides = 5; // 修改为5张轮播图
+
+        function updateSlide() {
+            carouselSlides.style.transform = `translateX(-${currentSlide * 100}%)`;
+            
+            indicators.forEach((indicator, index) => {
+                if (index === currentSlide) {
+                    indicator.classList.add('bg-gold');
+                    indicator.classList.remove('bg-gold/50');
+                } else {
+                    indicator.classList.add('bg-gold/50');
+                    indicator.classList.remove('bg-gold');
+                }
+            });
+        }
+
+        prevBtn.addEventListener('click', () => {
+            currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+            updateSlide();
+        });
+
+        nextBtn.addEventListener('click', () => {
+            currentSlide = (currentSlide + 1) % totalSlides;
+            updateSlide();
+        });
+
+        indicators.forEach(indicator => {
+            indicator.addEventListener('click', () => {
+                currentSlide = parseInt(indicator.dataset.index);
+                updateSlide();
+            });
+        });
+
+        let carouselInterval = setInterval(() => {
+            currentSlide = (currentSlide + 1) % totalSlides;
+            updateSlide();
+        }, 5000);
+
+        document.getElementById('newsCarousel').addEventListener('mouseenter', () => {
+            clearInterval(carouselInterval);
+        });
+
+        document.getElementById('newsCarousel').addEventListener('mouseleave', () => {
+            carouselInterval = setInterval(() => {
+                currentSlide = (currentSlide + 1) % totalSlides;
+                updateSlide();
+            }, 5000);
+        });
+
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                if (menuOpen) {
+                    mobileMenu.classList.add('-translate-y-full', 'opacity-0', 'pointer-events-none');
+                    mobileMenu.classList.remove('translate-y-0', 'opacity-100', 'pointer-events-auto');
+                    menuBtn.innerHTML = '<i class="fa fa-bars text-xl"></i>';
+                    menuOpen = false;
+                }
+                
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+                
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        const backToTopBtn = document.getElementById('backToTop');
+        
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 500) {
+                backToTopBtn.classList.remove('opacity-0', 'invisible');
+                backToTopBtn.classList.add('opacity-100', 'visible');
+            } else {
+                backToTopBtn.classList.add('opacity-0', 'invisible');
+                backToTopBtn.classList.remove('opacity-100', 'visible');
+            }
+        });
+        
+        backToTopBtn.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const videoCovers = document.querySelectorAll('.video-cover');
+            const videoPlayerModal = document.querySelector('.video-player-modal');
+            const closePlayerBtn = document.getElementById('closePlayerBtn');
+            const mainVideoPlayer = document.getElementById('mainVideoPlayer');
+            const playerVideoTitle = document.getElementById('playerVideoTitle');
+            const playerVideoDesc = document.getElementById('playerVideoDesc');
+            const videoProgress = document.getElementById('videoProgress');
+            const currentTimeDisplay = document.getElementById('currentTime');
+            const totalTimeDisplay = document.getElementById('totalTime');
+            const playerPlayPause = document.getElementById('playerPlayPause');
+            const playerError = document.getElementById('playerError');
+
+            mainVideoPlayer.addEventListener('error', function() {
+                mainVideoPlayer.style.display = 'none';
+                playerError.style.display = 'block';
+            });
+
+            videoCovers.forEach((cover, index) => {
+                cover.addEventListener('click', function() {
+                    mainVideoPlayer.style.display = 'block';
+                    playerError.style.display = 'none';
+                    
+                    const videoUrl = this.getAttribute('data-video-url');
+                    // 修复：兼容左侧视频卡片，正确获取标题和描述
+                    const card = this.closest('.video-cover').parentElement;
+                    const videoTitle = card.querySelector('.video-title-static')?.textContent || "主题视频";
+                    const videoDesc = card.querySelector('p')?.textContent || "海南全岛封关运作专题视频";
+                    
+                    mainVideoPlayer.src = videoUrl;
+                    playerVideoTitle.textContent = videoTitle;
+                    playerVideoDesc.textContent = videoDesc;
+                    
+                    videoPlayerModal.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                    
+                    mainVideoPlayer.load();
+                    mainVideoPlayer.play().catch(err => {
+                        console.log("视频自动播放被阻止:", err);
+                    });
+                });
+            });
+
+            closePlayerBtn.addEventListener('click', function() {
+                videoPlayerModal.classList.remove('active');
+                mainVideoPlayer.pause();
+                document.body.style.overflow = 'auto';
+            });
+
+            mainVideoPlayer.addEventListener('timeupdate', function() {
+                const progress = (this.currentTime / this.duration) * 100;
+                videoProgress.style.width = progress + '%';
+                
+                const currentMinutes = Math.floor(this.currentTime / 60);
+                const currentSeconds = Math.floor(this.currentTime % 60);
+                currentTimeDisplay.textContent = `${currentMinutes.toString().padStart(2, '0')}:${currentSeconds.toString().padStart(2, '0')}`;
+            });
+
+            mainVideoPlayer.addEventListener('loadedmetadata', function() {
+                const totalMinutes = Math.floor(this.duration / 60);
+                const totalSeconds = Math.floor(this.duration % 60);
+                totalTimeDisplay.textContent = `${totalMinutes.toString().padStart(2, '0')}:${totalSeconds.toString().padStart(2, '0')}`;
+            });
+
+            playerPlayPause.addEventListener('click', function() {
+                if (mainVideoPlayer.paused) {
+                    mainVideoPlayer.play();
+                    this.innerHTML = '<i class="fa fa-pause text-xl"></i>';
+                } else {
+                    mainVideoPlayer.pause();
+                    this.innerHTML = '<i class="fa fa-play text-xl"></i>';
+                }
+            });
+        });
+        
+        // 滚动新闻悬停暂停
+        const newsList = document.getElementById('newsList');
+        const newsScroll = document.getElementById('newsScroll');
+        newsList.addEventListener('mouseenter', () => {
+            newsScroll.style.animationPlayState = 'paused';
+        });
+        newsList.addEventListener('mouseleave', () => {
+            newsScroll.style.animationPlayState = 'running';
+        });
+    </script>
+</body>
+</html>
