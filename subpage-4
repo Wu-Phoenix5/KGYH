@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>青年回音</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2980b9',
+                        secondary: '#3498db',
+                        gold: '#D4AF37',
+                        goldLight: '#F0C808',
+                        goldDark: '#B8860B',
+                        neutral: '#E9E9E9',
+                        footerGray: '#333333',
+                        neutralUltraLight: '#F0F0F0',
+                        neutralSuperLight: '#F5F5F5'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'elegant': '0 4px 20px rgba(0, 0, 0, 0.08)',
+                        'elegant-hover': '0 8px 30px rgba(0, 0, 0, 0.12)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            }
+            .hover-lift {
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }
+            .hover-lift:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            }
+            .video-hover-scale {
+                transition: transform 0.3s ease;
+            }
+            .video-hover-scale:hover {
+                transform: scale(1.02);
+            }
+            /* 1. 新增横向滚动动画：从右向左无限滚动 */
+            @keyframes scrollNewsHorizontal {
+                0% { transform: translateX(0); }
+                100% { transform: translateX(-100%); }
+            }
+            .animate-scroll-news-horizontal {
+                /* 移除默认动画，改为JS控制 */
+                animation: none;
+                will-change: transform;
+            }
+            .audio-cover-container {
+                position: relative;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+            .audio-cover-overlay {
+                position: absolute; inset: 0;
+                background-color: rgba(0,0,0,0.4);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                opacity: 1;
+                transition: opacity 0.3s ease;
+            }
+            .audio-cover-container:hover .audio-cover-overlay {
+                background-color: rgba(0,0,0,0.6);
+            }
+            .audio-play-btn {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background-color: #D4AF37;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: transform 0.3s ease;
+            }
+            .audio-cover-container:hover .audio-play-btn {
+                transform: scale(1.1);
+            }
+        }
+    </style>
+    <style>
+        .video-player-modal {
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s ease;
+            z-index: -1;
+        }
+        .video-player-modal.active {
+            opacity: 1;
+            visibility: visible;
+            z-index: 100;
+        }
+        .video-progress-bar {
+            height: 4px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .video-progress {
+            height: 100%;
+            background-color: #D4AF37;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+        .format-time {
+            font-size: 0.875rem;
+        }
+        .audio-hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <!-- 导航栏：青年回音默认蓝色高亮 -->
+    <header class="bg-white shadow-md sticky top-0 z-50 transition-all duration-300" id="navbar">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center py-3">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <a href="#" class="flex items-center">
+                        <div class="w-10 h-10 rounded-full bg-gold flex items-center justify-center mr-2 overflow-hidden">
+                          <img src="images/Logo.png" alt="新闻网Logo" class="w-full h-full object-contain rounded-lg">
+                        </div>
+                        <span class="text-xl font-bold text-black">跨“关”越海</span>
+                    </a>
+                </div>
+
+                <!-- 桌面导航：青年回音 默认蓝色高亮 -->
+                <nav class="hidden md:flex space-x-6">
+                    <a href="index.html" class="text-gray-700 font-medium hover:text-primary transition-colors" onclick="saveScrollState()">首页</a>
+                    <a href="subpage-1.html" class="text-gray-700 font-medium hover:text-primary transition-colors" onclick="saveScrollState()">封关解读</a>
+                    <a href="subpage-2.html" class="text-gray-700 font-medium hover:text-primary transition-colors" onclick="saveScrollState()">封关纪事</a>
+                    <a href="subpage-3.html" class="text-gray-700 font-medium hover:text-primary transition-colors" onclick="saveScrollState()">机遇图谱</a>
+                    <a href="subpage-4.html" class="text-primary font-medium hover:text-secondary transition-colors">青年回音</a>
+                </nav>
+
+                <!-- 搜索和菜单按钮 -->
+                <div class="flex items-center space-x-4">
+                    <button class="text-gray-700 hover:text-primary transition-colors">
+                        <i class="fa fa-search text-lg"></i>
+                    </button>
+                    <button class="md:hidden text-gray-700 hover:text-primary transition-colors" id="menuBtn">
+                        <i class="fa fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 移动端导航：同步青年回音 默认蓝色高亮 -->
+        <div class="md:hidden bg-white shadow-lg absolute w-full left-0 top-full transform -translate-y-full opacity-0 transition-all duration-300 pointer-events-none" id="mobileMenu">
+            <div class="container mx-auto px-4 py-3 flex flex-col space-y-3">
+                <a href="index.html" class="text-gray-700 font-medium py-2 border-b border-gray-100" onclick="saveScrollState()">首页</a>
+                <a href="subpage-1.html" class="text-gray-700 font-medium py-2 border-b border-gray-100" onclick="saveScrollState()">封关解读</a>
+                <a href="subpage-2.html" class="text-gray-700 font-medium py-2 border-b border-gray-100" onclick="saveScrollState()">封关纪事</a>
+                <a href="subpage-3.html" class="text-gray-700 font-medium py-2 border-b border-gray-100" onclick="saveScrollState()">机遇图谱</a>
+                <a href="subpage-4.html" class="text-primary font-medium py-2">青年回音</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- 🔴 已添加：从第二串代码复制过来的封面大图 -->
+        <section class="py-6 container mx-auto px-4">
+            <div class="relative overflow-hidden rounded-xl shadow-lg mb-4">
+                <img src="images/页4.png" alt="海南要闻封面" class="w-full h-[720px] object-cover" style="max-width: 1920px; margin: 0 auto;">
+            </div>
+        </section>
+
+        <!-- 第一个板块：栏目简介（已添加左右新闻小卡片） -->
+        <section class="py-0 container mx-auto px-4 mb-1">
+            <div class="text-center mb-6">
+                <h2 class="text-[clamp(1.3rem,2vw,1.8rem)] font-bold text-primary mb-4">回音激荡</h2>
+                <div class="w-16 h-1 bg-gold mx-auto"></div>
+            </div>
+            
+            <!-- 布局修改：使用grid布局，左右卡片+中间内容 -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                <!-- 左侧新闻小卡片 -->
+                <div class="md:col-span-3 hidden md:block">
+                    <div class="bg-white rounded-xl shadow-elegant p-5 hover-lift h-full">
+                        <img src="images/王娱.png" alt="青年声音" class="w-full h-40 object-cover rounded-lg mb-4">
+                        <span class="inline-block text-xs bg-primary/10 text-primary px-2 py-1 rounded">广东广州</span>
+                        <h4 class="font-semibold text-lg mt-3 line-clamp-2 hover:text-primary transition-colors">
+                            <a href="https://www.gzmtu.edu.cn/info/1018/20218.htm">春节坚守琼州海峡，广航人以青春担当护航团圆路</a>
+                        </h4>
+                        <p class="text-sm text-gray-600 mt-2 line-clamp-2">坚守琼州海峡春运一线，履职担当，全力保障往来旅客出行平安。</p>
+                        <span class="text-xs text-gray-500 mt-3">2026-02-23</span>
+                    </div>
+                </div>
+
+                <!-- 中间正文内容 -->
+                <div class="md:col-span-6">
+                    <div class="bg-white rounded-2xl shadow-elegant p-4 md:px-12 lg:px-24 py-8">
+                        <p class="text-gray-700 leading-relaxed mb-4 text-lg">
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;这里是你的回音壁，也是全岛同路人的麦克风。
+                        </p>
+                        <p class="text-gray-700 leading-relaxed mb-4 text-lg">
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;我们相信，每一个跨越山海的步履都值得被听见，每一种探索可能性的勇气都值得被点亮。无论你是已经踏上这片热土，还是在远方眺望这片蓝海——请把你的故事、疑问、甚至一丝犹疑，轻轻留在这里。
+                        </p>
+                        <p class="text-gray-700 leading-relaxed text-lg">
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;那些关于未来的不安与憧憬，我们会小心收藏，并让它化作无数具体的回答、真实的相遇、以及并肩前行的力量。封关不是终点，而是青年无限可能的序章；大海隔开陆地，却连起更广阔的征途。
+                        </p>
+                        <p class="text-gray-700 leading-relaxed text-lg mt-4">
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;你的声音，正在成为海南新故事的一部分。
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 右侧新闻小卡片 -->
+                <div class="md:col-span-3 hidden md:block">
+                    <div class="bg-white rounded-xl shadow-elegant p-5 hover-lift h-full">
+                        <img src="images/王啸旗.png" alt="回音心声" class="w-full h-40 object-cover rounded-lg mb-4">
+                        <span class="inline-block text-xs bg-primary/10 text-primary px-2 py-1 rounded">中国河南</span>
+                        <h4 class="font-semibold text-lg mt-3 line-clamp-2 hover:text-primary transition-colors">
+                            <a href="https://www.sanya.gov.cn/sanyasite/kjcxw/202601/ff491556f37b4f8aa588fa007b4b1104.shtml">人才建功自贸港｜王啸旗：扎根南繁热土 科技赋能种业振兴</a>
+                        </h4>
+                        <p class="text-sm text-gray-600 mt-2 line-clamp-2">深耕崖州湾，创新育种技术，打造青年突击队，用科技助力海南乡村振兴与种业振兴。</p>
+                        <span class="text-xs text-gray-500 mt-3">2026-01-12</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 新增：鄂青在琼 板块 -->
+        <section class="py-4 container mx-auto px-4 mb-4">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-primary flex items-center">
+                    <span class="w-1 h-6 bg-gold mr-3"></span>
+                    鄂青建琼
+                </h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="bg-white rounded-xl shadow-elegant p-5 hover-lift">
+                    <img src="images/杨卓.png" alt="湖北基建援琼" class="w-full h-40 object-cover rounded-lg mb-4">
+                    <span class="inline-block text-xs bg-primary/10 text-primary px-2 py-1 rounded">湖北襄阳</span>
+                    <h4 class="font-semibold text-lg mt-3 line-clamp-2 hover:text-primary transition-colors">
+                        <a href="https://www.ctdsb.net/c1673_202606/2762874.html">高考英语79分，边养猪边备考！杨卓（襄阳专科生），逆袭上岸！</a>
+                    </h4>
+                    <p class="text-sm text-gray-600 mt-2 line-clamp-2">专科起步，边养猪边备考，逆袭考上海南大学兽医专业硕士研究生。</p>
+                    <span class="text-xs text-gray-500 mt-3">2026-06-04</span>
+                </div>
+                <div class="bg-white rounded-xl shadow-elegant p-5 hover-lift">
+                    <img src="images/欧阳威.png" alt="人才支援" class="w-full h-40 object-cover rounded-lg mb-4">
+                    <span class="inline-block text-xs bg-primary/10 text-primary px-2 py-1 rounded">湖北武汉</span>
+                    <h4 class="font-semibold text-lg mt-3 line-clamp-2 hover:text-primary transition-colors">
+                        <a href="https://www.qcuwh.cn/info/1054/9310.htm">欧阳威：椰风海韵映青春，西部志愿绽芳华</a>
+                    </h4>
+                    <p class="text-sm text-gray-600 mt-2 line-clamp-2">投身西部志愿服务，扎根海南基层，以青春力量服务地方发展建设。</p>
+                    <span class="text-xs text-gray-500 mt-3">2026-03-22</span>
+                </div>
+                <div class="bg-white rounded-xl shadow-elegant p-5 hover-lift">
+                    <img src="images/龚航里.png" alt="商贸互通" class="w-full h-40 object-cover rounded-lg mb-4">
+                    <span class="inline-block text-xs bg-primary/10 text-primary px-2 py-1 rounded">湖北武汉</span>
+                    <h4 class="font-semibold text-lg mt-3 line-clamp-2 hover:text-primary transition-colors">
+                        <a href="https://www.sanya.gov.cn/sanyasite/kjcxw/202507/cb01de6d16fd4801a420cef221a4415d.shtml">毕业留琼！他们从科技城出发，奔向建设海南自贸港的事业征途</a>
+
+                    </h4>
+                    <p class="text-sm text-gray-600 mt-2 line-clamp-2">三位海南专项毕业生留琼，深耕科研、农业等领域助力自贸港建设。</p>
+                    <span class="text-xs text-gray-500 mt-3">2025-07-08</span>
+                </div>
+                <div class="bg-white rounded-xl shadow-elegant p-5 hover-lift">
+                    <img src="images/田兴鹏.png" alt="湖北农产品出海" class="w-full h-40 object-cover rounded-lg mb-4">
+                    <span class="inline-block text-xs bg-primary/10 text-primary px-2 py-1 rounded">湖北监利</span>
+                    <h4 class="font-semibold text-lg mt-3 line-clamp-2 hover:text-primary transition-colors">
+                        <a href="http://jy.hainnu.edu.cn/web/index/article-detail?id=122">大学生创业人物事迹|做一名合格的中国创客</a>
+                    </h4>
+                    <p class="text-sm text-gray-600 mt-2 line-clamp-2">搭建人力资源服务平台，补齐用工短板，为海南人才建设赋能助力。</p>
+                    <span class="text-xs text-gray-500 mt-3">2021-07-08</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 青年之声滚动新闻横条（三大修改已完成） -->
+        <section class="py-4 bg-white shadow-elegant mb-4 rounded-xl"> <!-- 3. 容器添加rounded-xl实现四角圆角 -->
+            <div class="container mx-auto px-4">
+                <div class="relative h-16 overflow-hidden">
+                    <!-- 左侧标签：2. 已改为“青年之声” -->
+                    <div class="absolute left-0 top-0 h-16 w-24 bg-primary flex items-center justify-center z-10 rounded-l-xl"> <!-- 标签左侧圆角与容器一致 -->
+                        <span class="text-white font-medium">青年之声</span>
+                    </div>
+                    <!-- 滚动新闻容器：1. 横向滚动（右→左），使用新动画类 -->
+                    <div class="absolute top-0 left-24 w-full h-full flex">
+                        <div class="flex items-center h-full whitespace-nowrap animate-scroll-news-horizontal" id="horizontalScrollContent">
+                            <!-- 新闻列表（可增删，替换链接为你的实际地址即可，用空格分隔新闻） -->
+                            <a href="https://v.douyin.com/bwfLGiWi5i4/" class="text-gray-700 hover:text-primary transition-colors px-4" onclick="saveScrollState()">海南自由贸易港《封关·启航》24小时全媒体大型直播</a>
+                            <span class="text-gray-300">|</span> <!-- 新闻分隔符 -->
+                            <a href="https://m.chinanews.com/wap/detail/chs/zw/9856206" class="text-gray-700 hover:text-primary transition-colors px-4" onclick="saveScrollState()">港澳青年看“封关”：筑梦海南自贸港 </a>
+                            <span class="text-gray-300">|</span>
+                            <a href="https://news.qq.com/rain/a/20260504A02PJ900" class="text-gray-700 hover:text-primary transition-colors px-4" onclick="saveScrollState()">五四青年节，在海南自贸港见证青春与时代的“双向奔赴”</a>
+                            <span class="text-gray-300">|</span>
+                            <a href="https://www.financialnews.com.cn/2025-12/19/content_439866.html" class="text-gray-700 hover:text-primary transition-colors px-4" onclick="saveScrollState()">潮涌琼州千帆竞 青春逐梦护封关——封关之战中的央行青年先锋纪实</a>
+                            <span class="text-gray-300">|</span>
+                            <a href="https://36kr.com/p/3616005452416006" class="text-gray-700 hover:text-primary transition-colors px-4" onclick="saveScrollState()">海南封关后的“软实力”竞赛：一家本地科技企业如何以科学教育回应时代命题</a>
+                            <span class="text-gray-300">|</span>
+                            <!-- 重复新闻列表，实现无缝横向滚动衔接 -->
+                            <a href="https://www.peopleapp.com/column/30051011246-500007263210" class="text-gray-700 hover:text-primary transition-colors px-4" onclick="saveScrollState()">海南大学：封关启航 才聚自贸港</a>
+                            <span class="text-gray-300">|</span>
+                            <a href="https://www.sohu.com/a/971235784_121106994" class="text-gray-700 hover:text-primary transition-colors px-4" onclick="saveScrollState()">蔡海燕：深耕财税30年，从公职人员转型创业，以专业守护自贸港财税合规生命线 </a>
+                            <span class="text-gray-300">|</span>
+                            <a href="https://news.qq.com/rain/a/20250724A09POI00" class="text-gray-700 hover:text-primary transition-colors px-4" onclick="saveScrollState()">2025年海南乡村振兴・返乡青年创业培育计划项目启动</a>
+                            <span class="text-gray-300">|</span>
+                            <a href="https://www.thepaper.cn/newsDetail_forward_32249547" class="text-gray-700 hover:text-primary transition-colors px-4" onclick="saveScrollState()">冷廷琼：深耕椰子油产业14年，以技术创新与巾帼力量赋能乡村振兴</a>
+                            <span class="text-gray-300">|</span>
+                            <a href="https://news.qq.com/rain/a/20251127V05VNG00" class="text-gray-700 hover:text-primary transition-colors px-4" onclick="saveScrollState()">海南 自贸港企业“政策直通车”</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 第二个板块：趣味互动（替换圆圈图表为图片容器） -->
+        <section class="py-8 container mx-auto px-4 bg-neutralUltraLight/50 rounded-2xl mb-4">
+            <div class="text-center mb-6">
+                <h2 class="text-[clamp(1.3rem,2vw,1.8rem)] font-bold text-primary mb-4">趣味交互</h2>
+                <div class="w-16 h-1 bg-gold mx-auto"></div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 px-4 md:px-12">
+                <!-- H5链接1：圆圈图表替换为图片容器 -->
+              <div class="bg-white rounded-xl shadow-elegant hover-lift p-6 text-center">
+                    <!-- 替换原有圆形图标为图片容器，可自定义图片路径 -->
+                    <div class="w-20 h-20 rounded-xl overflow-hidden mx-auto mb-4">
+                        <img src="images/海南3.png" alt="趣味小测试配图" class="w-full h-full object-cover">
+                    </div>
+                    <h3 class="text-xl font-semibold text-black mb-3">趣味小测试：海南封“关”知多少？</h3>
+                <p class="text-gray-600 mb-6">交互式H5，看看你对海南封“关”了解多少</p>
+                  <a href="https://e.eqxiu.com/s/nvoYKQZG?eip=true" class="inline-block bg-primary text-white px-6 py-3 rounded-lg hover:bg-secondary transition-colors duration-300" onclick="saveScrollState()">
+                      点击进入测试 <i class="fa fa-arrow-right ml-2"></i>
+                  </a>
+                </div>
+
+                <!-- H5链接2：圆圈图表替换为图片容器 -->
+                <div class="bg-white rounded-xl shadow-elegant hover-lift p-6 text-center">
+                    <!-- 替换原有圆形图标为图片容器，可自定义图片路径 -->
+                    <div class="w-20 h-20 rounded-xl overflow-hidden mx-auto mb-4">
+                        <img src="images/轻投票2.jpeg" alt="未来目的地投票配图" class="w-full h-full object-cover">
+                    </div>
+                    <h3 class="text-xl font-semibold text-black mb-3">“未来目的地”轻投票：你对海南将来怎么看？</h3>
+                    <p class="text-gray-600 mb-6">可视化H5，沉浸式抒发你对海南未来的情感</p>
+                    <a href="https://form.ebdan.net/ls/1pDJBrPS?bt=yxy" class="inline-block bg-primary text-white px-6 py-3 rounded-lg hover:bg-secondary transition-colors duration-300" onclick="saveScrollState()">
+                        点击进入投票 <i class="fa fa-arrow-right ml-2"></i>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- 第三个板块：留言互动（图片3/4，表单1/4，表单缩小） -->
+        <section class="py-8 container mx-auto px-4 bg-white rounded-2xl shadow-elegant mb-4">
+            <div class="text-center mb-6">
+                <h2 class="text-[clamp(1.3rem,2vw,1.8rem)] font-bold text-primary mb-4">留言互动</h2>
+                <div class="w-16 h-1 bg-gold mx-auto"></div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 px-4 md:px-12">
+                <!-- 左侧图片：占3/4宽度 -->
+                <div class="lg:col-span-3 flex flex-row gap-4">
+                    <div class="flex flex-col gap-4 flex-1">
+                        <div class="rounded-xl overflow-hidden">
+                            <img src="images/图片1.jpg" alt="留言互动配图1" class="w-full h-36 md:h-48 object-cover hover-lift">
+                        </div>
+                        <div class="rounded-xl overflow-hidden">
+                            <img src="images/图片4.jpg" alt="留言互动配图2" class="w-full h-36 md:h-48 object-cover hover-lift">
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-4 flex-1">
+                        <div class="rounded-xl overflow-hidden">
+                            <img src="images/图片2.jpg" alt="留言互动配图3" class="w-full h-36 md:h-48 object-cover hover-lift">
+                        </div>
+                        <div class="rounded-xl overflow-hidden">
+                            <img src="images/图片3.jpg" alt="留言互动配图4" class="w-full h-36 md:h-48 object-cover hover-lift">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 留言区：占1/4宽度，整体缩小 -->
+                <div class="lg:col-span-1 flex flex-col">
+                    <h3 class="text-lg font-semibold text-black mb-4 text-center">我要留言</h3>
+                    <form class="flex flex-col gap-3 flex-grow">
+                        <div>
+                            <label for="username" class="block text-gray-700 mb-1 text-xs">姓名</label>
+                            <input type="text" id="username" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:border-primary" placeholder="请输入您的姓名">
+                        </div>
+                        <div>
+                            <label for="useremail" class="block text-gray-700 mb-1 text-xs">邮箱</label>
+                            <input type="email" id="useremail" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:border-primary" placeholder="请输入您的邮箱">
+                        </div>
+                        <div class="flex-grow">
+                            <label for="message" class="block text-gray-700 mb-1 text-xs">留言内容</label>
+                            <textarea id="message" rows="5" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:border-primary resize-none" placeholder="请输入留言内容..."></textarea>
+                        </div>
+                        <button type="submit" class="bg-primary text-white px-4 py-2 text-sm rounded-lg hover:bg-secondary transition-colors duration-300 font-medium">
+                            提交留言 <i class="fa fa-paper-plane ml-1"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- 问卷调查板块：与趣味交互布局、边距、尺寸完全对齐统一 -->
+        <section class="py-8 container mx-auto px-4 bg-neutralSuperLight rounded-2xl mb-4">
+            <div class="text-center mb-6">
+                <h2 class="text-[clamp(1.3rem,2vw,1.8rem)] font-bold text-primary mb-4">问卷调查</h2>
+                <div class="w-16 h-1 bg-gold mx-auto"></div>
+            </div>
+            <!-- 使用和趣味交互完全一致的 grid 布局 + 边距 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 px-4 md:px-12">
+                <!-- 第一个问卷卡片 -->
+                <div class="bg-white rounded-xl shadow-elegant hover-lift p-6 text-center">
+                    <h3 class="text-xl font-semibold text-black mb-3">海南封关在校大学生需求调研</h3>
+                    <p class="text-gray-600 mb-6">您的反馈将帮助我们更好地了解大学生群体对海南自贸港的期待与需求，感谢您的参与！</p>
+                    <a href="https://v.wjx.cn/vm/QaROBA1.aspx" class="inline-block bg-primary text-white px-6 py-3 rounded-lg hover:bg-secondary transition-colors duration-300" onclick="saveScrollState()">
+                        填写问卷调查 <i class="fa fa-list-ul ml-2"></i>
+                    </a>
+                </div>
+                <!-- 第二个问卷卡片（完全一致，左右对齐并排） -->
+                <div class="bg-white rounded-xl shadow-elegant hover-lift p-6 text-center">
+                    <h3 class="text-xl font-semibold text-black mb-3">海南封关社会青年需求调研</h3>
+                    <p class="text-gray-600 mb-6">您的反馈将帮助我们更好地了解社会青年群体对海南自贸港的期待与需求，感谢您的参与！</p>
+                    <a href="https://v.wjx.cn/vm/ed3JQcA.aspx" class="inline-block bg-primary text-white px-6 py-3 rounded-lg hover:bg-secondary transition-colors duration-300" onclick="saveScrollState()">
+                        填写问卷调查 <i class="fa fa-list-ul ml-2"></i>
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页脚（保留完整） -->
+    <footer class="bg-footerGray text-white pt-8 pb-8">
+        <div class="container mx-auto px-6 md:px-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-8">
+                <!-- 品牌信息 -->
+                <div>
+                    <div class="flex items-center space-x-2 mb-6">
+                        <div class="w-12 h-12 bg-gold rounded-md flex items-center justify-center overflow-hidden">
+                            <img src="images/Logo.png" alt="金色Logo" class="w-full h-full object-contain rounded-lg" >
+                        </div>
+                        <span class="text-xl font-semibold">跨“关”越海</span>
+                    </div>
+                    <p class="text-white/70 mb-6">
+                        致力于打造贴近民生，深入人心的新闻内容，推动行业创新与发展，连接全球优质资源
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="w-10 h-10 rounded-full bg-white/10 hover:bg-gold flex items-center justify-center transition-all duration-300">
+                            <i class="fa fa-weibo"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-white/10 hover:bg-gold flex items-center justify-center transition-all duration-300">
+                            <i class="fa fa-wechat"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-white/10 hover:bg-gold flex items-center justify-center transition-all duration-300">
+                            <i class="fa fa-linkedin"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-white/10 hover:bg-gold flex items-center justify-center transition-all duration-300">
+                            <i class="fa fa-twitter"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 快速链接 -->
+                <div>
+                    <h3 class="text-lg font-semibold mb-6 pb-2 border-b border-white/10">快速链接</h3>
+                    <ul class="space-y-3">
+                        <li><a href="index.html" class="text-white/70 hover:text-gold transition-colors duration-300" onclick="saveScrollState()">首页</a></li>
+                        <li><a href="subpage-1.html" class="text-white/70 hover:text-gold transition-colors duration-300" onclick="saveScrollState()">封关解读</a></li>
+                        <li><a href="subpage-2.html" class="text-white/70 hover:text-gold transition-colors duration-300" onclick="saveScrollState()">封关纪事</a></li>
+                        <li><a href="subpage-3.html" class="text-white/70 hover:text-gold transition-colors duration-300" onclick="saveScrollState()">机遇图谱</a></li>
+                        <li><a href="#youth-voice" class="text-white/70 hover:text-gold transition-colors duration-300">青年回音</a></li>
+                    </ul>
+                </div>
+
+                <!-- 联系我们 -->
+                <div id="contact">
+                    <h3 class="text-lg font-semibold mb-6 pb-2 border-b border-white/10">联系我们</h3>
+                    <ul class="space-y-3">
+                        <li class="flex items-start">
+                            <i class="fa fa-map-marker text-gold mt-1 mr-3"></i>
+                            <span class="text-white/70">中国湖北</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fa fa-phone text-gold mr-3"></i>
+                            <span class="text-white/70">999-999-9999</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fa fa-envelope text-gold mr-3"></i>
+                            <span class="text-white/70">contact@kgyhnews.com</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 订阅通讯 -->
+                <div>
+                    <h3 class="text-lg font-semibold mb-6 pb-2 border-b border-white/10">订阅通讯</h3>
+                    <p class="text-white/70 mb-4">
+                        订阅我们的通讯，及时获取最新新闻动态与行业资讯
+                    </p>
+                    <form class="flex">
+                        <input type="email" placeholder="您的邮箱地址" class="px-4 py-2 rounded-l-md w-full focus:outline-none text-neutral">
+                        <button type="submit" class="bg-gold hover:bg-goldLight text-secondary px-4 py-2 rounded-r-md transition-colors duration-300">
+                            <i class="fa fa-paper-plane"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 版权信息 -->
+            <div class="pt-6 border-t border-white/10 text-center text-white/50 text-sm">
+                <p>© 2026 跨“关”越海 版权所有 </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 返回顶部按钮（保留完整） -->
+    <button id="backToTop" class="fixed bottom-6 right-6 w-12 h-12 rounded-full bg-primary text-white shadow-lg flex items-center justify-center opacity-0 invisible transition-all duration-300 hover:bg-secondary">
+        <i class="fa fa-chevron-up"></i>
+    </button>
+
+    <!-- 原有脚本 + 新增横向滚动记忆功能 -->
+    <script>
+        // 导航栏滚动效果
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 100) {
+                navbar.classList.add('py-2', 'shadow-lg');
+                navbar.classList.remove('py-3', 'shadow-md');
+            } else {
+                navbar.classList.add('py-3', 'shadow-md');
+                navbar.classList.remove('py-2', 'shadow-lg');
+            }
+        });
+
+        // 移动端菜单
+        const menuBtn = document.getElementById('menuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        let menuOpen = false;
+
+        menuBtn.addEventListener('click', () => {
+            if (menuOpen) {
+                mobileMenu.classList.add('-translate-y-full', 'opacity-0', 'pointer-events-none');
+                mobileMenu.classList.remove('translate-y-0', 'opacity-100', 'pointer-events-auto');
+                menuBtn.innerHTML = '<i class="fa fa-bars text-xl"></i>';
+            } else {
+                mobileMenu.classList.add('translate-y-0', 'opacity-100', 'pointer-events-auto');
+                mobileMenu.classList.remove('-translate-y-full', 'opacity-0', 'pointer-events-none');
+                menuBtn.innerHTML = '<i class="fa fa-times text-xl"></i>';
+            }
+            menuOpen = !menuOpen;
+        });
+
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                if (menuOpen) {
+                    mobileMenu.classList.add('-translate-y-full', 'opacity-0', 'pointer-events-none');
+                    mobileMenu.classList.remove('translate-y-0', 'opacity-100', 'pointer-events-auto');
+                    menuBtn.innerHTML = '<i class="fa fa-bars text-xl"></i>';
+                    menuOpen = false;
+                }
+                
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+                
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // 返回顶部按钮
+        const backToTopBtn = document.getElementById('backToTop');
+        
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 500) {
+                backToTopBtn.classList.remove('opacity-0', 'invisible');
+                backToTopBtn.classList.add('opacity-100', 'visible');
+            } else {
+                backToTopBtn.classList.add('opacity-0', 'invisible');
+                backToTopBtn.classList.remove('opacity-100', 'visible');
+            }
+        });
+        
+        backToTopBtn.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        // 留言表单提交阻止默认行为（便于测试）
+        document.querySelector('form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('留言提交成功！我们会尽快给您回复~');
+            this.reset();
+        });
+
+        // ========== 新增：横向滚动条记忆功能 ==========
+        // 1. 保存滚动状态
+        window.saveScrollState = function() {
+            const scrollContent = document.getElementById('horizontalScrollContent');
+            if (!scrollContent) return;
+
+            // 获取当前滚动位置（百分比）
+            const computedStyle = window.getComputedStyle(scrollContent);
+            const transform = computedStyle.getPropertyValue('transform');
+            let translateX = 0;
+            
+            if (transform && transform !== 'none') {
+                const matrix = new DOMMatrix(transform);
+                translateX = matrix.e; // 获取X轴偏移量
+            }
+
+            // 获取内容总宽度（单份内容）
+            const contentWidth = scrollContent.scrollWidth / 2;
+            // 计算滚动百分比
+            const scrollPercent = Math.abs(translateX) / contentWidth;
+
+            // 保存到localStorage
+            localStorage.setItem('horizontalScrollState', JSON.stringify({
+                scrollPercent: scrollPercent,
+                timestamp: Date.now()
+            }));
+        };
+
+        // 2. 恢复滚动状态并启动动画
+        let scrollAnimationId = null;
+        function initHorizontalScroll() {
+            const scrollContent = document.getElementById('horizontalScrollContent');
+            if (!scrollContent) return;
+
+            // 清除之前的动画
+            if (scrollAnimationId) {
+                cancelAnimationFrame(scrollAnimationId);
+            }
+
+            // 配置 - 调整为稍稍慢一点的速度（从15改为20）
+            const scrollSpeed = 30; // 20秒滚动完一轮（数值越小速度越快）
+            const contentWidth = scrollContent.scrollWidth / 2; // 单份内容宽度
+            let startPercent = 0;
+            let startTime = Date.now();
+
+            // 从localStorage恢复状态
+            const savedState = localStorage.getItem('horizontalScrollState');
+            if (savedState) {
+                try {
+                    const { scrollPercent, timestamp } = JSON.parse(savedState);
+                    startPercent = scrollPercent;
+                    // 计算已经过去的时间，调整起始时间
+                    const elapsedTime = Date.now() - timestamp;
+                    startTime = Date.now() - (elapsedTime % (scrollSpeed * 1000));
+                } catch (e) {
+                    console.error('恢复滚动状态失败:', e);
+                }
+            }
+
+            // 动画函数
+            function animateScroll() {
+                // 计算已过去的时间（秒）
+                const elapsed = (Date.now() - startTime) / 1000;
+                // 计算当前滚动百分比（加上初始偏移）
+                let currentPercent = (elapsed / scrollSpeed) + startPercent;
+                // 循环滚动
+                currentPercent = currentPercent % 1;
+                
+                // 计算X轴偏移量
+                const translateX = -currentPercent * contentWidth;
+                // 应用变换
+                scrollContent.style.transform = `translateX(${translateX}px)`;
+                
+                // 继续动画
+                scrollAnimationId = requestAnimationFrame(animateScroll);
+            }
+
+            // 启动动画
+            animateScroll();
+        }
+
+        // 3. 页面离开时保存状态
+        window.addEventListener('beforeunload', saveScrollState);
+
+        // 4. 页面加载完成后初始化滚动
+        document.addEventListener('DOMContentLoaded', initHorizontalScroll);
+
+        // 5. 为所有外部链接添加保存状态的事件
+        document.querySelectorAll('a:not([href^="#"])').forEach(link => {
+            if (!link.hasAttribute('onclick')) {
+                link.addEventListener('click', saveScrollState);
+            }
+        });
+    </script>
+</body>
+</html>
